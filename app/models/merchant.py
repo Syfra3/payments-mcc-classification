@@ -2,7 +2,7 @@
 
 import uuid
 from typing import List, Optional
-from sqlalchemy import Column, String, Float, UUID, JSON, event
+from sqlalchemy import Column, String, Float, UUID, event
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from pgvector.sqlalchemy import Vector
@@ -18,7 +18,6 @@ class Merchant(Base, TimestampMixin, SoftDeleteMixin):
     embedding = Column(Vector(1536), nullable=True)
     logo_url = Column(String(500), nullable=True)
     weight = Column(Float, default=1.0, nullable=False)
-    metadata = Column(JSON, default={}, nullable=False)
 
     # Relationships
     external_merchants = relationship(
@@ -35,6 +34,12 @@ class Merchant(Base, TimestampMixin, SoftDeleteMixin):
         "OutboxEvent",
         back_populates="merchant",
         foreign_keys="OutboxEvent.merchant_id",
+    )
+    metadata_record = relationship(
+        "MerchantMetadata",
+        back_populates="merchant",
+        uselist=False,
+        cascade="all, delete-orphan",
     )
 
     def __init__(self, **kwargs):

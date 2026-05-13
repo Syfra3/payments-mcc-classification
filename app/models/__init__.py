@@ -58,4 +58,6 @@ class SoftDeleteMixin:
         return self.deleted_at is None
 
 
-__all__ = ["Base", "TimestampMixin", "SoftDeleteMixin"]
+from app.models.merchant_metadata import MerchantMetadata  # noqa: F401
+
+__all__ = ["Base", "TimestampMixin", "SoftDeleteMixin", "MerchantMetadata"]

@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     # LangFuse (Tracing)
     langfuse_public_key: str = Field(default="", description="LangFuse public key")
     langfuse_secret_key: str = Field(default="", description="LangFuse secret key")
+    langfuse_url: str = Field(default="https://cloud.langfuse.com", description="LangFuse server URL")
 
     # Authentication
     hmac_secret: str = Field(..., description="Shared HMAC secret")

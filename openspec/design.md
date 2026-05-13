@@ -1,8 +1,8 @@
-# Design: payments-classification-mcp
+# Design: payments-mcc-classification
 
 ## Technical Approach
 
-**Layered async Python FastAPI service** porting the NestJS glim-merchant-microservice with architectural parity. The design preserves the original's patterns (pipeline engine, provider abstraction, transaction management, outbox pattern) while adapting for Python's async/await ecosystem. Context management via `contextvars` replaces NestJS's AsyncLocalStorage. SQLAlchemy 2.x async ORM with pgvector embeddings maintains the database strategy. Step-based pipeline engine with decorator-driven discovery mirrors the NestJS BaseEngineService.
+**Layered async Python FastAPI service** porting the NestJS the reference NestJS implementation with architectural parity. The design preserves the original's patterns (pipeline engine, provider abstraction, transaction management, outbox pattern) while adapting for Python's async/await ecosystem. Context management via `contextvars` replaces NestJS's AsyncLocalStorage. SQLAlchemy 2.x async ORM with pgvector embeddings maintains the database strategy. Step-based pipeline engine with decorator-driven discovery mirrors the NestJS BaseEngineService.
 
 ## Architecture Decisions
 
@@ -16,7 +16,7 @@
 | **Embedding Storage** | pgvector on Merchant/Mcc + Embedding table | Vector columns `embedding: Vector(1536)` on Merchant, `embedding: Vector(768)` on Mcc. Separate `Embedding` table for metadata and link tracking. `pgvector` index: `btree_gin` for filtering, `ivfflat` for similarity. |
 | **Soft Deletes** | SQLAlchemy hybrid_property `is_deleted` | `deleted_at: DateTime | None`. Hybrid property `is_deleted` for filter clarity. All queries filter `deleted_at IS NULL` by default. Works with eager/lazy loading. |
 | **Outbox Worker** | Async polling loop + background task | `AsyncOutboxProcessor` polls every 2s, retries with exponential backoff (1s → 32s). Uses asyncio.gather for concurrent event processing (max 5 concurrent). Marks complete/failed/dead-letter. No Redis required (v1). |
-| **Request Authentication** | HMAC guard + JWT fallback | Replicates `GlimHmacGuard` from @glim-it. HMAC signature in `X-Glim-Signature` header verified via shared secret. JWT fallback for internal requests. Unprotected health check. |
+| **Request Authentication** | HMAC guard + JWT fallback | Replicates `HmacGuard` from custom auth. HMAC signature in `X-API-Signature` header verified via shared secret. JWT fallback for internal requests. Unprotected health check. |
 | **API Versioning** | URI prefix `/api/v1/` | FastAPI router includes with `prefix="/v1"`. Mirrors NestJS @Version('1') behavior. Easy multi-version support later. |
 | **Logging & Traces** | LangFuse + structlog | LangFuse callback handler wired to LangChain chains for LLM pipeline steps. structlog for structured JSON logs. Langfuse optional (graceful fallback if unavailable). |
 | **Config Management** | Pydantic Settings from env | `Settings(BaseSettings)` with validators. Type-safe, env-var auto-loading, `.env` support. Validates required vars at startup (PORT, DB_URL, OPENAI_API_KEY, etc.). |
@@ -446,7 +446,7 @@ Test database strategy: `async_session_maker(expire_on_commit=False)` + transact
 
 ## Open Questions
 
-- [ ] How to obtain the Python equivalent of `@glim-it/glim-common-api` HMAC guard? (Stub implementation provided; verify integration path)
+- [ ] How to obtain the Python equivalent of `custom HMAC guard` HMAC guard? (Stub implementation provided; verify integration path)
 - [ ] Should LangFuse tracing be mandatory or optional in v1? (Currently optional; graceful fallback)
 - [ ] Confirm ExternalMerchant → Merchant field mapping with Pomelo schema documentation
 - [ ] Should Redis be required for Outbox distributed locking, or is single-instance polling sufficient for v1? (Currently polling-only; Redis deferred)

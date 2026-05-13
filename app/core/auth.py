@@ -32,16 +32,16 @@ async def verify_request_signature(request: Request) -> None:
     """
     FastAPI dependency to verify request HMAC signature.
 
-    Checks for X-Glim-Signature header and verifies it matches
+    Checks for X-API-Signature header and verifies it matches
     the request body signed with the HMAC secret.
 
     Raises:
         HTTPException: If signature is missing or invalid
     """
     # Get signature from header
-    signature = request.headers.get("X-Glim-Signature")
+    signature = request.headers.get("X-API-Signature")
     if not signature:
-        raise HTTPException(status_code=401, detail="Missing X-Glim-Signature header")
+        raise HTTPException(status_code=401, detail="Missing X-API-Signature header")
 
     # Get request body
     body = await request.body()

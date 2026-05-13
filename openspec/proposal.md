@@ -1,8 +1,8 @@
-# Proposal: payments-classification-mcp
+# Proposal: payments-mcc-classification
 
 ## Intent
 
-Port the glim-merchant-microservice (NestJS/TypeScript) to Python with FastAPI, creating a vendor-neutral, cloud-native payments classification service. This service will manage merchant data, embeddings, and intelligent classification pipelines using multiple AI and payment provider backends. The primary driver is **technology stack diversification** — enabling Python teams to collaborate on the payments domain while maintaining architectural parity with the original NestJS implementation.
+Port the the reference NestJS implementation (NestJS/TypeScript) to Python with FastAPI, creating a vendor-neutral, cloud-native payments classification service. This service will manage merchant data, embeddings, and intelligent classification pipelines using multiple AI and payment provider backends. The primary driver is **technology stack diversification** — enabling Python teams to collaborate on the payments domain while maintaining architectural parity with the original NestJS implementation.
 
 ## Scope
 
@@ -26,7 +26,7 @@ Port the glim-merchant-microservice (NestJS/TypeScript) to Python with FastAPI, 
 - **GraphQL**: REST API only in v1
 - **Real-time WebSocket support**: HTTP polling/webhooks only
 - **Langfuse observability**: integrated in design but traces are fire-and-forget; no custom dashboard in v1
-- **OAuth/custom auth**: HMAC + JWT only (HMAC from global @glim-it/glim-common-api equivalent TBD)
+- **OAuth/custom auth**: HMAC + JWT only (HMAC from global custom HMAC guard equivalent TBD)
 - **Blue-green deployment**: standard containerization; advanced deployment strategies deferred
 - **DynamoDB integration**: PostgreSQL only in v1; DynamoDB deferred to v2
 - **SNS event publishing**: webhook callbacks only in v1; SNS integration deferred
@@ -54,7 +54,7 @@ Port the glim-merchant-microservice (NestJS/TypeScript) to Python with FastAPI, 
 1. **API Layer** (controllers)
    - FastAPI routers with dependency injection
    - Request/response schemas via Pydantic v2
-   - HMAC + JWT guards (inherited from @glim-it)
+   - HMAC + JWT guards (inherited from custom auth)
    - Swagger/OpenAPI via FastAPI native support
 
 2. **Service Layer** (domain orchestration)
@@ -158,7 +158,7 @@ Port the glim-merchant-microservice (NestJS/TypeScript) to Python with FastAPI, 
 - `pytest-httpx` 0.21+ (mock HTTP)
 
 ### Internal Dependencies
-- `@glim-it/glim-common-api` equivalent for Python (TBD) — HMAC/JWT guards
+- `custom HMAC guard` equivalent for Python (TBD) — HMAC/JWT guards
 
 ## Success Criteria
 

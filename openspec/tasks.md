@@ -1,6 +1,6 @@
-# SDD Tasks: payments-classification-mcp
+# SDD Tasks: payments-mcc-classification
 
-**Change**: payments-classification-mcp  
+**Change**: payments-mcc-classification  
 **Status**: Ready for Implementation  
 **Total Tasks**: 47  
 **Execution Model**: Sequential phases with intra-phase parallelization where noted  
@@ -78,12 +78,12 @@ Bootstrap → Infrastructure → Data Layer ↘
 **Delivery**: Directory tree + stub files  
 **Verification**:
 ```bash
-ls -la payments-classification-mcp/
+ls -la payments-mcc-classification/
 # Verify: app/, alembic/, tests/, docker-compose.yml, pyproject.toml, .env.example, README.md exist
 ```
 
 **Details**:
-- Create `payments-classification-mcp/` root directory
+- Create `payments-mcc-classification/` root directory
 - Create subdirectories:
   - `app/` (main package)
   - `app/api/v1/` (routers)
@@ -108,7 +108,7 @@ ls -la payments-classification-mcp/
 **Delivery**: pyproject.toml with all dependencies pinned  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -m pip install -e ".[dev]" --dry-run
+cd payments-mcc-classification && python -m pip install -e ".[dev]" --dry-run
 # Should list 25+ packages without conflicts
 ```
 
@@ -196,7 +196,7 @@ MAX_WORKERS=4
 **Delivery**: alembic/ directory with env.py, script.py.mako, .env integration  
 **Verification**:
 ```bash
-cd payments-classification-mcp
+cd payments-mcc-classification
 alembic revision --autogenerate -m "initial schema"
 # Should create alembic/versions/*.py without errors
 ```
@@ -227,7 +227,7 @@ alembic revision --autogenerate -m "initial schema"
 **Delivery**: `app/core/config.py` with Pydantic Settings  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "from app.core.config import settings; print(settings.database_url, settings.environment)"
+cd payments-mcc-classification && python -c "from app.core.config import settings; print(settings.database_url, settings.environment)"
 # Should load from .env without error
 ```
 
@@ -264,7 +264,7 @@ cd payments-classification-mcp && python -c "from app.core.config import setting
 **Delivery**: `app/core/context.py` with ContextVar + @transactional decorator  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "from app.core.context import transactional_context; print(transactional_context.get())"
+cd payments-mcc-classification && python -c "from app.core.context import transactional_context; print(transactional_context.get())"
 # Should print None (no ambient session)
 ```
 
@@ -298,7 +298,7 @@ cd payments-classification-mcp && python -c "from app.core.context import transa
 **Delivery**: `app/core/exceptions.py` + middleware + exception handlers  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "from app.core.exceptions import ResourceNotFound; raise ResourceNotFound('test')"
+cd payments-mcc-classification && python -c "from app.core.exceptions import ResourceNotFound; raise ResourceNotFound('test')"
 # Should raise exception with status_code=404
 ```
 
@@ -327,7 +327,7 @@ cd payments-classification-mcp && python -c "from app.core.exceptions import Res
 ---
 
 ### Task 2.4: Implement HMAC Authentication Guard
-**Spec Requirement**: Verify X-Glim-Signature header (FastAPI Merchant API capability 1)  
+**Spec Requirement**: Verify X-API-Signature header (FastAPI Merchant API capability 1)  
 **Depends On**: Task 2.1, 2.3  
 **Delivery**: `app/core/auth.py` with HMAC guard + JWT fallback  
 **Verification**:
@@ -350,7 +350,7 @@ print(f'Valid: {result}')
   - Compare to provided signature using constant-time comparison (hmac.compare_digest)
   - Return bool
 - FastAPI dependency `verify_request_signature()`:
-  - Extract `X-Glim-Signature` header
+  - Extract `X-API-Signature` header
   - If missing, return 401 (Unauthorized)
   - Reconstruct request body (from request.body())
   - Call verify_hmac_signature()
@@ -370,7 +370,7 @@ print(f'Valid: {result}')
 **Delivery**: `app/core/database.py` with engine + async_session_local  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.core.database import engine, async_session_local
 import asyncio
 async def test():
@@ -415,7 +415,7 @@ asyncio.run(test())
 **Delivery**: `app/models/__init__.py` with Base, TimestampMixin, SoftDeleteMixin  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "from app.models import Base, Merchant; print(Merchant.__tablename__)"
+cd payments-mcc-classification && python -c "from app.models import Base, Merchant; print(Merchant.__tablename__)"
 # Should print "merchant"
 ```
 
@@ -442,7 +442,7 @@ cd payments-classification-mcp && python -c "from app.models import Base, Mercha
 **Delivery**: `alembic/versions/001_initial.py` (auto-generated stub)  
 **Verification**:
 ```bash
-cd payments-classification-mcp
+cd payments-mcc-classification
 alembic upgrade head
 # Should create all tables without error
 ```
@@ -470,7 +470,7 @@ alembic upgrade head
 **Delivery**: `app/models/merchant.py`, `app/repositories/merchant_repository.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.models import Merchant
 m = Merchant(name='TEST', provider='pomelo')
 print(m.name, m.provider)
@@ -517,7 +517,7 @@ print(m.name, m.provider)
 **Delivery**: `app/models/mcc.py`, `app/repositories/mcc_repository.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.models import Mcc, Category
 c = Category(name='FOOD')
 print(c.name)
@@ -574,7 +574,7 @@ print(c.name)
 **Delivery**: `app/models/external_merchant.py`, `app/repositories/external_merchant_repository.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.models import ExternalMerchant
 em = ExternalMerchant(provider='pomelo', provider_id='123')
 print(em.provider, em.provider_id)
@@ -629,7 +629,7 @@ print(em.provider, em.provider_id)
 **Delivery**: `app/models/embedding.py`, `app/models/outbox.py`, `app/repositories/embedding_repository.py`, `app/repositories/outbox_repository.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.models import Embedding, OutboxEvent
 e = Embedding(resource_type='merchant', resource_id='123', embedding=[0.1]*1536)
 print(e.resource_type, len(e.embedding))
@@ -688,7 +688,7 @@ print(e.resource_type, len(e.embedding))
 **Delivery**: `alembic/versions/001_initial.py` (auto-generated)  
 **Verification**:
 ```bash
-cd payments-classification-mcp
+cd payments-mcc-classification
 alembic revision --autogenerate -m "initial schema"
 alembic upgrade head
 docker-compose exec postgres psql -U postgres -d merchant_db -c "\dt"
@@ -726,7 +726,7 @@ docker-compose exec postgres psql -U postgres -d merchant_db -c "\dt"
 **Delivery**: `app/pipeline/engine.py`, `app/pipeline/decorators.py`, `app/pipeline/registry.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.pipeline.decorators import step, ExecutionType
 from app.pipeline.engine import PipelineEngine
 
@@ -805,7 +805,7 @@ print(TestStep.__name__)
 **Delivery**: `app/providers/llm/__init__.py`, `app/providers/llm/interface.py`, `app/providers/llm/openai_provider.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.providers.llm.interface import ILlmProvider
 from app.providers.llm.openai_provider import OpenAiProvider
 provider = OpenAiProvider(api_key='test')
@@ -855,7 +855,7 @@ print(isinstance(provider, ILlmProvider))
 **Delivery**: `app/providers/card/__init__.py`, `app/providers/card/interface.py`, `app/providers/card/pomelo_provider.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.providers.card.interface import ICardProvider
 from app.providers.card.pomelo_provider import PomeloProvider
 provider = PomeloProvider(api_key='test', base_url='https://api.pomelo.dev')
@@ -902,7 +902,7 @@ print(isinstance(provider, ICardProvider))
 **Delivery**: `app/providers/embedding.py` (or extend embedding_repository.py)  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.providers.embedding import cosine_similarity
 v1 = [1, 0, 0]
 v2 = [1, 0, 0]
@@ -934,7 +934,7 @@ print(sim)
 **Delivery**: `app/providers/google_places.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.providers.google_places import GooglePlacesProvider
 provider = GooglePlacesProvider(api_key='test')
 print(provider.provider_name)
@@ -962,7 +962,7 @@ print(provider.provider_name)
 **Delivery**: `app/providers/s3.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.providers.s3 import S3Provider
 provider = S3Provider(access_key='test', secret_key='test', bucket='test')
 print(provider.bucket)
@@ -992,7 +992,7 @@ print(provider.bucket)
 **Delivery**: `app/providers/sns.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.providers.sns import SnsPublisher
 pub = SnsPublisher(topic_arn='arn:aws:sns:...')
 print(pub.topic_arn)
@@ -1019,7 +1019,7 @@ print(pub.topic_arn)
 **Delivery**: `app/core/dependencies.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.core.dependencies import get_llm_provider
 from app.providers.llm.interface import ILlmProvider
 provider = get_llm_provider()
@@ -1055,7 +1055,7 @@ print(isinstance(provider, ILlmProvider))
 **Delivery**: `app/pipeline/base_step.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.pipeline.base_step import BaseStep
 class TestStep(BaseStep):
     async def execute(self, context):
@@ -1090,7 +1090,7 @@ print(TestStep.__name__)
 **Delivery**: `app/schemas/__init__.py` with all DTO classes  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.schemas import MerchantCreateRequest
 m = MerchantCreateRequest(name='Test', provider='pomelo')
 print(m.name, m.provider)
@@ -1141,7 +1141,7 @@ print(m.name, m.provider)
 **Delivery**: `app/services/merchant_service.py`, `app/services/mcc_service.py`, `app/services/external_merchant_service.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.services.merchant_service import MerchantService
 service = MerchantService(None)
 print(service.__class__.__name__)
@@ -1272,7 +1272,7 @@ print(service.__class__.__name__)
 **Delivery**: `app/pipeline/auto_creation/__init__.py` with all 7 steps  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.pipeline.auto_creation import CheckExistenceStep
 print(CheckExistenceStep.__name__)
 "
@@ -1339,7 +1339,7 @@ Create 7 step classes (each in separate file, imported in `__init__.py`):
 **Delivery**: `app/pipeline/validation/__init__.py` with validation steps  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.pipeline.validation import ValidateNameStep
 print(ValidateNameStep.__name__)
 "
@@ -1374,7 +1374,7 @@ Create validation step classes:
 **Delivery**: `app/api/v1/merchants.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.api.v1.merchants import router
 print(len(router.routes))
 "
@@ -1417,7 +1417,7 @@ print(len(router.routes))
 **Delivery**: `app/api/v1/mccs.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.api.v1.mccs import router
 print(len(router.routes))
 "
@@ -1459,7 +1459,7 @@ print(len(router.routes))
 **Delivery**: `app/api/v1/external_merchants.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.api.v1.external_merchants import router
 print(len(router.routes))
 "
@@ -1491,7 +1491,7 @@ print(len(router.routes))
 **Delivery**: `app/api/v1/auto_creation.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.api.v1.auto_creation import router
 print(len(router.routes))
 "
@@ -1518,7 +1518,7 @@ print(len(router.routes))
 **Delivery**: `app/api/v1/health.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.api.v1.health import router
 print(len(router.routes))
 "
@@ -1566,7 +1566,7 @@ print(len(router.routes))
 **Delivery**: `app/api/v1/outbox.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.api.v1.outbox import router
 print(len(router.routes))
 "
@@ -1592,7 +1592,7 @@ print(len(router.routes))
 **Delivery**: `app/main.py` (updated) with full app bootstrap  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.main import create_app
 app = create_app()
 print(len(app.routes))
@@ -1602,7 +1602,7 @@ print(len(app.routes))
 
 **Details**:
 - Function `create_app() -> FastAPI`:
-  - app = FastAPI(title="payments-classification-mcp", version="1.0.0")
+  - app = FastAPI(title="payments-mcc-classification", version="1.0.0")
   - Middleware:
     - app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
     - app.add_middleware(TrustedHostMiddleware, allowed_hosts=[...])
@@ -1631,7 +1631,7 @@ print(len(app.routes))
 **Delivery**: `app/workers/outbox_processor.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.workers.outbox_processor import AsyncOutboxProcessor
 print(AsyncOutboxProcessor.__name__)
 "
@@ -1689,7 +1689,7 @@ print(AsyncOutboxProcessor.__name__)
 **Delivery**: `app/core/lifecycle.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.core.lifecycle import init_app, shutdown_app
 print(init_app.__name__, shutdown_app.__name__)
 "
@@ -1721,7 +1721,7 @@ print(init_app.__name__, shutdown_app.__name__)
 **Delivery**: `app/core/middleware.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && python -c "
+cd payments-mcc-classification && python -c "
 from app.core.middleware import setup_exception_handlers
 print(setup_exception_handlers.__name__)
 "
@@ -1782,7 +1782,7 @@ curl http://localhost:8000/api/docs 2>/dev/null | grep -i openapi
 **Delivery**: `tests/unit/test_merchant_service.py`, `tests/unit/test_mcc_service.py`, `tests/unit/test_external_merchant_service.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && pytest tests/unit/ --cov=app.services --cov-report=term-missing
+cd payments-mcc-classification && pytest tests/unit/ --cov=app.services --cov-report=term-missing
 # Should report >75% coverage
 ```
 
@@ -1810,7 +1810,7 @@ cd payments-classification-mcp && pytest tests/unit/ --cov=app.services --cov-re
 **Delivery**: `tests/unit/test_pipeline_engine.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && pytest tests/unit/test_pipeline_engine.py --cov=app.pipeline --cov-report=term-missing
+cd payments-mcc-classification && pytest tests/unit/test_pipeline_engine.py --cov=app.pipeline --cov-report=term-missing
 # Should report >75% coverage
 ```
 
@@ -1836,7 +1836,7 @@ cd payments-classification-mcp && pytest tests/unit/test_pipeline_engine.py --co
 **Delivery**: `tests/unit/test_llm_provider.py`, `tests/unit/test_card_provider.py`, `tests/unit/test_embedding_provider.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && pytest tests/unit/test_*_provider.py --cov=app.providers --cov-report=term-missing
+cd payments-mcc-classification && pytest tests/unit/test_*_provider.py --cov=app.providers --cov-report=term-missing
 # Should report >75% coverage
 ```
 
@@ -1859,7 +1859,7 @@ cd payments-classification-mcp && pytest tests/unit/test_*_provider.py --cov=app
 **Delivery**: `tests/integration/test_merchant_flow.py`, `tests/integration/test_auto_creation_flow.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && pytest tests/integration/ --cov=app --cov-report=term-missing
+cd payments-mcc-classification && pytest tests/integration/ --cov=app --cov-report=term-missing
 # Should report >50% coverage and pass
 ```
 
@@ -1887,7 +1887,7 @@ cd payments-classification-mcp && pytest tests/integration/ --cov=app --cov-repo
 **Delivery**: `tests/e2e/test_merchant_api.py`, `tests/e2e/test_auto_creation_api.py`  
 **Verification**:
 ```bash
-cd payments-classification-mcp && pytest tests/e2e/ --cov=app.api --cov-report=term-missing
+cd payments-mcc-classification && pytest tests/e2e/ --cov=app.api --cov-report=term-missing
 # Should report >30% coverage and pass
 ```
 
@@ -1909,7 +1909,7 @@ cd payments-classification-mcp && pytest tests/e2e/ --cov=app.api --cov-report=t
 - Test file: `tests/e2e/test_auto_creation_api.py`:
   - test_post_auto_create_merchant_triggers_pipeline
   - test_post_validate_merchant_returns_validation_result
-- Use mock HMAC header: X-Glim-Signature = compute_hmac(request_body, secret)
+- Use mock HMAC header: X-API-Signature = compute_hmac(request_body, secret)
 
 ---
 
@@ -1919,7 +1919,7 @@ cd payments-classification-mcp && pytest tests/e2e/ --cov=app.api --cov-report=t
 **Delivery**: `README.md`, update `docker-compose.yml`, `Dockerfile`, `.gitignore`, `pyproject.toml`  
 **Verification**:
 ```bash
-cd payments-classification-mcp
+cd payments-mcc-classification
 docker-compose up -d
 docker-compose exec web python -m pytest --cov=app
 docker-compose down
@@ -1962,7 +1962,7 @@ docker-compose down
 
 **`docker-compose.yml`** (update):
 - Service `web`:
-  - Image: payments-classification-mcp:latest (build from Dockerfile)
+  - Image: payments-mcc-classification:latest (build from Dockerfile)
   - Ports: 8000:8000
   - Environment: DATABASE_URL, OPENAI_API_KEY, etc. (from .env)
   - Depends on: postgres, redis

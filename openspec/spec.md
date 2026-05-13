@@ -1,14 +1,14 @@
-# Specification: payments-classification-mcp
+# Specification: payments-mcc-classification
 
-**Change**: payments-classification-mcp  
+**Change**: payments-mcc-classification  
 **Version**: 1.0  
 **Status**: Spec Draft  
 **Date**: 2026-05-13  
-**Scope**: Python/FastAPI port of glim-merchant-microservice with plugin-based provider architecture
+**Scope**: Python/FastAPI port of the reference NestJS implementation with plugin-based provider architecture
 
 ## Executive Summary
 
-This specification defines the **payments-classification-mcp** service: a Python/FastAPI microservice for managing merchant data, embeddings, and AI-driven classification pipelines. The service maintains architectural parity with the original NestJS implementation while enabling Python-based teams to contribute to the payments domain. Key differentiators: pluggable LLM and card provider backends, async-native design using SQLAlchemy 2.x, and a step-based pipeline engine framework.
+This specification defines the **payments-mcc-classification** service: a Python/FastAPI microservice for managing merchant data, embeddings, and AI-driven classification pipelines. The service maintains architectural parity with the original NestJS implementation while enabling Python-based teams to contribute to the payments domain. Key differentiators: pluggable LLM and card provider backends, async-native design using SQLAlchemy 2.x, and a step-based pipeline engine framework.
 
 ---
 

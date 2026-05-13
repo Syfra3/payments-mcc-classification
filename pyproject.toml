@@ -1,10 +1,12 @@
 [tool.poetry]
-name = "payments-classification-mcp"
+name = "payments-mcc-classification"
 version = "1.0.0"
 description = "Merchant classification microservice with Python/FastAPI"
-authors = ["Glim Engineering <dev@getglim.com>"]
+authors = ["syfra3 <opensource@syfra3.com>"]
 license = "MIT"
 readme = "README.md"
+homepage = "https://github.com/syfra3/payments-mcc-classification"
+repository = "https://github.com/syfra3/payments-mcc-classification"
 packages = [{include = "app"}]
 
 [tool.poetry.dependencies]

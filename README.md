@@ -1,6 +1,6 @@
-# Payments Classification MCP
+# payments-mcc-classification
 
-A Python/FastAPI microservice for merchant management, embeddings, and AI-driven classification pipelines.
+A Python/FastAPI microservice for merchant management, embeddings, and AI-driven classification pipelines. Open source project by [syfra3](https://github.com/syfra3).
 
 ## Quick Start
 
@@ -14,7 +14,7 @@ A Python/FastAPI microservice for merchant management, embeddings, and AI-driven
 
 1. Clone the repository and install dependencies:
 ```bash
-cd payments-classification-mcp
+cd payments-mcc-classification
 poetry install
 ```
 
@@ -176,14 +176,14 @@ poetry run pytest tests/unit/test_models.py::test_merchant_uppercase
 
 1. Build Docker image:
 ```bash
-docker build -t payments-classification-mcp:latest .
+docker build -t payments-mcc-classification:latest .
 ```
 
 2. Set environment variables for production
 
 3. Run migrations:
 ```bash
-docker run --rm payments-classification-mcp alembic upgrade head
+docker run --rm payments-mcc-classification alembic upgrade head
 ```
 
 4. Start the application with uvicorn, gunicorn, or container orchestration
