@@ -12,21 +12,27 @@ class Category(Base, TimestampMixin):
     """Category for grouping MCCs."""
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = Column(String(100), unique=True, nullable=False, index=True)
+    name = Column(String(100), nullable=False, index=True)
     description = Column(String(500), nullable=True)
+    tenant_id = Column(String(100), nullable=False, default="default", index=True)
 
     # Relationships
     mccs = relationship("Mcc", back_populates="category")
+
+    __table_args__ = (
+        UniqueConstraint("name", "tenant_id", name="uq_category_name_tenant_id"),
+    )
 
 
 class Mcc(Base, TimestampMixin, SoftDeleteMixin):
     """Merchant Category Code (MCC) entity."""
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    code = Column(String(10), unique=True, nullable=False, index=True)
+    code = Column(String(10), nullable=False, index=True)
     description = Column(Text, nullable=False)
     category_id = Column(UUID(as_uuid=True), ForeignKey("category.id"), nullable=True)
     embedding = Column(Vector(768), nullable=True)
+    tenant_id = Column(String(100), nullable=False, default="default", index=True)
 
     # Relationships
     category = relationship("Category", back_populates="mccs")
@@ -36,7 +42,10 @@ class Mcc(Base, TimestampMixin, SoftDeleteMixin):
         back_populates="mccs",
     )
 
-    __table_args__ = (Index("ix_mcc_code_category", "code", "category_id"),)
+    __table_args__ = (
+        Index("ix_mcc_code_category", "code", "category_id"),
+        UniqueConstraint("code", "tenant_id", name="uq_mcc_code_tenant_id"),
+    )
 
 
 class MerchantMcc(Base, TimestampMixin):

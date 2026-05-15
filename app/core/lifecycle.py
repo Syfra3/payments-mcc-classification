@@ -2,6 +2,7 @@
 
 from typing import Optional
 from app.workers.outbox_processor import AsyncOutboxProcessor
+from app.services.classifiers.demo_loader import load_demo_topics
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -19,6 +20,9 @@ async def init_app():
     try:
         # Initialize database (migrations would be run here)
         logger.info("Database initialized")
+
+        # Load demo topics if enabled
+        await load_demo_topics()
 
         # Create and start outbox processor
         _outbox_processor = AsyncOutboxProcessor(poll_interval=2)

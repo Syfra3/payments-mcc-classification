@@ -18,6 +18,7 @@ class Merchant(Base, TimestampMixin, SoftDeleteMixin):
     embedding = Column(Vector(1536), nullable=True)
     logo_url = Column(String(500), nullable=True)
     weight = Column(Float, default=1.0, nullable=False)
+    tenant_id = Column(String(100), nullable=False, default="default", index=True)
 
     # Relationships
     external_merchants = relationship(

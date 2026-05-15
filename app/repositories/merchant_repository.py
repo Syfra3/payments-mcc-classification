@@ -30,31 +30,44 @@ class MerchantRepository:
         await session.flush()
         return merchant
 
-    async def get_by_id(self, merchant_id: UUID) -> Optional[Merchant]:
-        """Get merchant by ID."""
+    async def get_by_id(self, merchant_id: UUID, tenant_id: str = "default") -> Optional[Merchant]:
+        """Get merchant by ID, scoped to tenant."""
         session = self._get_session()
         stmt = select(Merchant).where(
-            and_(Merchant.id == merchant_id, Merchant.deleted_at.is_(None))
+            and_(
+                Merchant.id == merchant_id,
+                Merchant.tenant_id == tenant_id,
+                Merchant.deleted_at.is_(None),
+            )
         )
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_name(self, name: str) -> Optional[Merchant]:
-        """Get merchant by name (case-insensitive)."""
+    async def get_by_name(self, name: str, tenant_id: str = "default") -> Optional[Merchant]:
+        """Get merchant by name (case-insensitive), scoped to tenant."""
         session = self._get_session()
         upper_name = name.upper()
         stmt = select(Merchant).where(
-            and_(Merchant.name == upper_name, Merchant.deleted_at.is_(None))
+            and_(
+                Merchant.name == upper_name,
+                Merchant.tenant_id == tenant_id,
+                Merchant.deleted_at.is_(None),
+            )
         )
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def list_all(self, skip: int = 0, limit: int = 100) -> List[Merchant]:
-        """List all merchants with pagination."""
+    async def list_all(self, tenant_id: str = "default", skip: int = 0, limit: int = 100) -> List[Merchant]:
+        """List all merchants for a tenant with pagination."""
         session = self._get_session()
         stmt = (
             select(Merchant)
-            .where(Merchant.deleted_at.is_(None))
+            .where(
+                and_(
+                    Merchant.tenant_id == tenant_id,
+                    Merchant.deleted_at.is_(None),
+                )
+            )
             .offset(skip)
             .limit(limit)
         )
@@ -64,10 +77,11 @@ class MerchantRepository:
     async def search_by_similarity(
         self,
         embedding: List[float],
+        tenant_id: str = "default",
         threshold: float = 0.0,
         limit: int = 10,
     ) -> List[Tuple[Merchant, float]]:
-        """Search merchants by embedding similarity."""
+        """Search merchants by embedding similarity, scoped to tenant."""
         session = self._get_session()
 
         # PostgreSQL pgvector similarity using <=> operator (cosine distance)
@@ -79,6 +93,7 @@ class MerchantRepository:
             )
             .where(
                 and_(
+                    Merchant.tenant_id == tenant_id,
                     Merchant.embedding.isnot(None),
                     Merchant.deleted_at.is_(None),
                     (1 - (Merchant.embedding.op("<->")(embedding))) >= threshold,
@@ -91,10 +106,10 @@ class MerchantRepository:
         result = await session.execute(stmt)
         return [(row[0], float(row[1])) for row in result.all()]
 
-    async def update(self, merchant_id: UUID, **kwargs) -> Optional[Merchant]:
-        """Update a merchant."""
+    async def update(self, merchant_id: UUID, tenant_id: str = "default", **kwargs) -> Optional[Merchant]:
+        """Update a merchant, scoped to tenant."""
         session = self._get_session()
-        merchant = await self.get_by_id(merchant_id)
+        merchant = await self.get_by_id(merchant_id, tenant_id)
         if not merchant:
             return None
 
@@ -106,10 +121,10 @@ class MerchantRepository:
         await session.flush()
         return merchant
 
-    async def delete(self, merchant_id: UUID) -> bool:
-        """Soft-delete a merchant."""
+    async def delete(self, merchant_id: UUID, tenant_id: str = "default") -> bool:
+        """Soft-delete a merchant, scoped to tenant."""
         session = self._get_session()
-        merchant = await self.get_by_id(merchant_id)
+        merchant = await self.get_by_id(merchant_id, tenant_id)
         if not merchant:
             return False
 
@@ -124,9 +139,18 @@ class MerchantRepository:
         await session.flush()
         return merchants
 
-    async def count(self) -> int:
-        """Count total merchants."""
+    async def count(self, tenant_id: str = "default") -> int:
+        """Count merchants for a tenant."""
         session = self._get_session()
-        stmt = select(func.count()).select_from(Merchant).where(Merchant.deleted_at.is_(None))
+        stmt = (
+            select(func.count())
+            .select_from(Merchant)
+            .where(
+                and_(
+                    Merchant.tenant_id == tenant_id,
+                    Merchant.deleted_at.is_(None),
+                )
+            )
+        )
         result = await session.execute(stmt)
         return result.scalar() or 0

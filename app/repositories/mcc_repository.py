@@ -29,26 +29,43 @@ class MccRepository:
         await session.flush()
         return mcc
 
-    async def get_by_id(self, mcc_id: UUID) -> Optional[Mcc]:
-        """Get MCC by ID."""
+    async def get_by_id(self, mcc_id: UUID, tenant_id: str = "default") -> Optional[Mcc]:
+        """Get MCC by ID, scoped to tenant."""
         session = self._get_session()
-        stmt = select(Mcc).where(and_(Mcc.id == mcc_id, Mcc.deleted_at.is_(None)))
+        stmt = select(Mcc).where(
+            and_(
+                Mcc.id == mcc_id,
+                Mcc.tenant_id == tenant_id,
+                Mcc.deleted_at.is_(None),
+            )
+        )
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_code(self, code: str) -> Optional[Mcc]:
-        """Get MCC by code."""
+    async def get_by_code(self, code: str, tenant_id: str = "default") -> Optional[Mcc]:
+        """Get MCC by code, scoped to tenant."""
         session = self._get_session()
-        stmt = select(Mcc).where(and_(Mcc.code == code, Mcc.deleted_at.is_(None)))
+        stmt = select(Mcc).where(
+            and_(
+                Mcc.code == code,
+                Mcc.tenant_id == tenant_id,
+                Mcc.deleted_at.is_(None),
+            )
+        )
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def list_all(self, skip: int = 0, limit: int = 100) -> List[Mcc]:
-        """List all MCCs with pagination."""
+    async def list_all(self, tenant_id: str = "default", skip: int = 0, limit: int = 100) -> List[Mcc]:
+        """List all MCCs for a tenant with pagination."""
         session = self._get_session()
         stmt = (
             select(Mcc)
-            .where(Mcc.deleted_at.is_(None))
+            .where(
+                and_(
+                    Mcc.tenant_id == tenant_id,
+                    Mcc.deleted_at.is_(None),
+                )
+            )
             .offset(skip)
             .limit(limit)
         )
@@ -58,10 +75,11 @@ class MccRepository:
     async def search_by_similarity(
         self,
         embedding: List[float],
+        tenant_id: str = "default",
         threshold: float = 0.0,
         limit: int = 10,
     ) -> List[Tuple[Mcc, float]]:
-        """Search MCCs by embedding similarity."""
+        """Search MCCs by embedding similarity, scoped to tenant."""
         session = self._get_session()
 
         stmt = (
@@ -71,6 +89,7 @@ class MccRepository:
             )
             .where(
                 and_(
+                    Mcc.tenant_id == tenant_id,
                     Mcc.embedding.isnot(None),
                     Mcc.deleted_at.is_(None),
                     (1 - (Mcc.embedding.op("<->")(embedding))) >= threshold,
@@ -83,10 +102,10 @@ class MccRepository:
         result = await session.execute(stmt)
         return [(row[0], float(row[1])) for row in result.all()]
 
-    async def update(self, mcc_id: UUID, **kwargs) -> Optional[Mcc]:
-        """Update an MCC."""
+    async def update(self, mcc_id: UUID, tenant_id: str = "default", **kwargs) -> Optional[Mcc]:
+        """Update an MCC, scoped to tenant."""
         session = self._get_session()
-        mcc = await self.get_by_id(mcc_id)
+        mcc = await self.get_by_id(mcc_id, tenant_id)
         if not mcc:
             return None
 
@@ -96,10 +115,10 @@ class MccRepository:
         await session.flush()
         return mcc
 
-    async def delete(self, mcc_id: UUID) -> bool:
-        """Soft-delete an MCC."""
+    async def delete(self, mcc_id: UUID, tenant_id: str = "default") -> bool:
+        """Soft-delete an MCC, scoped to tenant."""
         session = self._get_session()
-        mcc = await self.get_by_id(mcc_id)
+        mcc = await self.get_by_id(mcc_id, tenant_id)
         if not mcc:
             return False
 
@@ -154,23 +173,27 @@ class CategoryRepository:
         await session.flush()
         return category
 
-    async def get_by_id(self, category_id: UUID) -> Optional[Category]:
-        """Get category by ID."""
+    async def get_by_id(self, category_id: UUID, tenant_id: str = "default") -> Optional[Category]:
+        """Get category by ID, scoped to tenant."""
         session = self._get_session()
-        stmt = select(Category).where(Category.id == category_id)
+        stmt = select(Category).where(
+            and_(Category.id == category_id, Category.tenant_id == tenant_id)
+        )
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_name(self, name: str) -> Optional[Category]:
-        """Get category by name."""
+    async def get_by_name(self, name: str, tenant_id: str = "default") -> Optional[Category]:
+        """Get category by name, scoped to tenant."""
         session = self._get_session()
-        stmt = select(Category).where(Category.name == name)
+        stmt = select(Category).where(
+            and_(Category.name == name, Category.tenant_id == tenant_id)
+        )
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def list_all(self) -> List[Category]:
-        """List all categories."""
+    async def list_all(self, tenant_id: str = "default") -> List[Category]:
+        """List all categories for a tenant."""
         session = self._get_session()
-        stmt = select(Category)
+        stmt = select(Category).where(Category.tenant_id == tenant_id)
         result = await session.execute(stmt)
         return result.scalars().all()

@@ -1,0 +1,21 @@
+# Demo topics configuration
+# Default categories and topic mappings for tenant="default"
+# Loaded on application startup if DEMO_TOPICS=True
+
+default:
+  categories:
+    - name: FARMACIA
+      description: "Farmacias y droguerías"
+      mcc_codes: ["5912"]
+    - name: SUPERMERCADO
+      description: "Supermercados y almacenes"
+      mcc_codes: ["5411", "5412"]
+    - name: RESTAURANTE
+      description: "Restaurantes y bares"
+      mcc_codes: ["5812", "5813"]
+    - name: SERVICIOS
+      description: "Servicios (plomería, electricidad, etc)"
+      mcc_codes: ["7623", "7631", "7641"]
+    - name: OTROS
+      description: "Otros"
+      mcc_codes: []

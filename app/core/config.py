@@ -1,5 +1,6 @@
 """Application configuration and settings management."""
 
+import os
 from typing import Literal
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -46,6 +47,12 @@ class Settings(BaseSettings):
     # Workers
     max_workers: int = 4
 
+    # Classification
+    classifier_type: Literal["llm", "rules", "lookup"] = "llm"
+    classifier_rules_path: str = ""
+    default_tenant: str = "default"
+    demo_topics: bool = True
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
     @field_validator("database_url")
@@ -64,6 +71,28 @@ class Settings(BaseSettings):
             raise ValueError(
                 f"environment must be one of: development, staging, production. Got: {v}"
             )
+        return v
+
+    @field_validator("classifier_type")
+    @classmethod
+    def validate_classifier_type(cls, v: str) -> str:
+        """Validate classifier type."""
+        if v not in ("llm", "rules", "lookup"):
+            raise ValueError(
+                f"classifier_type must be one of: llm, rules, lookup. Got: {v}"
+            )
+        return v
+
+    @field_validator("classifier_rules_path")
+    @classmethod
+    def validate_classifier_rules_path(cls, v: str, info) -> str:
+        """Validate classifier rules path exists if classifier_type is 'rules'."""
+        classifier_type = info.data.get("classifier_type", "llm")
+        if classifier_type == "rules" and v:
+            if not os.path.exists(v):
+                raise ValueError(
+                    f"CLASSIFIER_RULES_PATH does not exist: {v}"
+                )
         return v
 
 
