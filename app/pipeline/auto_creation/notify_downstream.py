@@ -55,7 +55,7 @@ class NotifyDownstreamStep(BaseStep):
                 "merchant_name": merchant_name,
                 "mcc_codes": mcc_codes,
             }
-            await self._sns.publish("merchant-events", message)
+            await self._sns.publish(message, "merchant.created")
 
             self._logger.info(
                 "Downstream notification sent",

@@ -71,7 +71,7 @@ class AsyncOutboxProcessor:
                 # Query pending events with row-level locking for concurrency safety
                 result = await session.execute(
                     select(OutboxEvent)
-                    .where(OutboxEvent.status == "pending")
+                    .where(OutboxEvent.status == "PENDING")
                     .order_by(OutboxEvent.created_at)
                     .limit(10)
                     .with_for_update(skip_locked=True)

@@ -53,8 +53,31 @@ class SnsPublisher:
 
         Returns:
             MessageId from SNS
-
-        Raises:
-            NotImplementedError: In v1, this is stubbed
         """
-        raise NotImplementedError("SNS publish is not yet implemented in v1")
+        try:
+            client = self._get_client()
+            response = client.publish(
+                TopicArn=self.topic_arn,
+                Message=json.dumps(message),
+                Subject=event_type,
+                MessageAttributes={
+                    "event_type": {
+                        "DataType": "String",
+                        "StringValue": event_type
+                    }
+                }
+            )
+            logger.info(
+                "Message published to SNS",
+                message_id=response.get("MessageId"),
+                event_type=event_type,
+                topic_arn=self.topic_arn
+            )
+            return response.get("MessageId")
+        except Exception as e:
+            logger.error(
+                "Failed to publish message to SNS",
+                error=str(e),
+                event_type=event_type
+            )
+            raise

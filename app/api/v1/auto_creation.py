@@ -83,8 +83,8 @@ async def auto_create_merchant(
         errors = [str(e) for e in result.errors] if result.errors else []
 
         # Check if merchant was created
-        merchant = context.get("merchant")
-        merchant_id = context.get("merchant_id")
+        merchant = result.context.get("merchant")
+        merchant_id = result.context.get("merchant_id")
 
         if result.status == "success" and merchant_id:
             return PipelineResultResponse(

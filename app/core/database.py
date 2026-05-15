@@ -25,12 +25,16 @@ def get_engine(database_url: str, echo: bool = False) -> AsyncEngine:
     # Use NullPool for serverless, QueuePool for standard deployments
     pool_class = NullPool if settings.environment == "production" else QueuePool
 
+    # NullPool does not accept pool_size or max_overflow
+    pool_kwargs = {}
+    if pool_class is not NullPool:
+        pool_kwargs = {"pool_size": 20, "max_overflow": 0}
+
     return create_async_engine(
         database_url,
         echo=echo,
         pool_class=pool_class,
-        pool_size=20,
-        max_overflow=0,
+        **pool_kwargs,
         pool_pre_ping=True,
     )
 

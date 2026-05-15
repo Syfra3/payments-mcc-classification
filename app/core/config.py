@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = Field(
         default=["http://localhost:3000", "http://localhost:8000"]
     )
+    allowed_hosts: list[str] = Field(default=["*"], description="Allowed hosts for TrustedHostMiddleware")
     log_requests: bool = True
 
     # OpenAI

@@ -144,9 +144,9 @@ async def get_session() -> AsyncSession:
     return session
 
 
-def get_db_session() -> AsyncSession:
+async def get_db_session() -> AsyncSession:
     """Get database session for dependency injection."""
-    return get_session()
+    return await get_session()
 
 
 # Service dependencies

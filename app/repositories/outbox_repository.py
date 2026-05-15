@@ -105,7 +105,7 @@ class OutboxRepository:
         await session.flush()
         return event
 
-    async def mark_dead_lettered(self, event_id: UUID) -> Optional[OutboxEvent]:
+    async def mark_dead_lettered(self, event_id: UUID, error: str = None) -> Optional[OutboxEvent]:
         """Mark event as dead-lettered (permanent failure)."""
         session = self._get_session()
         event = await self.get_by_id(event_id)
@@ -113,5 +113,7 @@ class OutboxRepository:
             return None
 
         event.status = "DEAD_LETTERED"
+        if error:
+            event.last_error = error
         await session.flush()
         return event

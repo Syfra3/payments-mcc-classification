@@ -2,6 +2,7 @@
 
 from uuid import UUID
 from typing import Optional
+import structlog
 from app.core.context import transactional
 from app.core.exceptions import AppException, ResourceNotFound
 from app.models.merchant import Merchant
@@ -17,6 +18,8 @@ from app.schemas import (
 )
 from app.providers.llm.interface import ILlmProvider
 from app.providers.embedding import store_embedding, search_embeddings_by_similarity
+
+logger = structlog.get_logger(__name__)
 
 
 class MerchantService:
@@ -96,7 +99,7 @@ class MerchantService:
             merchant.embedding = embedding_vec
         except Exception as e:
             # Log but don't fail if embedding fails
-            print(f"Warning: Failed to generate embedding for merchant {merchant.id}: {e}")
+            logger.warning("embedding_generation_failed", merchant_id=str(merchant.id), error=str(e))
 
         return MerchantResponse.model_validate(merchant)
 
@@ -183,7 +186,13 @@ class MerchantService:
         if request.metadata is not None:
             merchant.metadata = request.metadata
 
-        merchant = await self._merchant_repo.update(merchant.id, **vars(merchant))
+        merchant = await self._merchant_repo.update(
+            merchant.id,
+            name=merchant.name,
+            logo_url=merchant.logo_url,
+            weight=merchant.weight,
+            metadata=merchant.metadata,
+        )
 
         # Regenerate embedding if name changed
         if name_changed:
@@ -196,7 +205,7 @@ class MerchantService:
                 )
                 merchant.embedding = embedding_vec
             except Exception as e:
-                print(f"Warning: Failed to regenerate embedding for merchant {merchant.id}: {e}")
+                logger.warning("embedding_regeneration_failed", merchant_id=str(merchant.id), error=str(e))
 
         return MerchantResponse.model_validate(merchant)
 

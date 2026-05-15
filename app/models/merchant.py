@@ -2,7 +2,7 @@
 
 import uuid
 from typing import List, Optional
-from sqlalchemy import Column, String, Float, UUID, event
+from sqlalchemy import Column, String, Float, UUID, event, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from pgvector.sqlalchemy import Vector
@@ -40,6 +40,10 @@ class Merchant(Base, TimestampMixin, SoftDeleteMixin):
         back_populates="merchant",
         uselist=False,
         cascade="all, delete-orphan",
+    )
+
+    __table_args__ = (
+        UniqueConstraint("name", name="uq_merchant_name"),
     )
 
     def __init__(self, **kwargs):

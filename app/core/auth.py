@@ -52,16 +52,13 @@ async def verify_request_signature(request: Request) -> None:
         raise HTTPException(status_code=401, detail="Invalid HMAC signature")
 
 
-def require_hmac_auth() -> None:
+async def require_hmac_auth(request: Request) -> None:
     """
-    FastAPI dependency decorator for HMAC-protected endpoints.
+    FastAPI dependency for HMAC-protected endpoints.
 
     Usage:
-        @app.post("/api/v1/merchants")
-        async def create_merchant(
-            data: MerchantCreate,
-            _: None = Depends(require_hmac_auth),
-        ):
+        @app.post("/api/v1/merchants", dependencies=[Depends(require_hmac_auth)])
+        async def create_merchant(data: MerchantCreate):
             ...
     """
-    return Depends(verify_request_signature)
+    await verify_request_signature(request)

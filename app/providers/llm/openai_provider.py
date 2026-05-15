@@ -4,6 +4,7 @@ from typing import Optional
 import httpx
 import json
 import structlog
+from cachetools import LRUCache
 
 from app.providers.llm.interface import ILlmProvider
 from app.providers.llm.langfuse_client import create_trace
@@ -32,7 +33,7 @@ class OpenAiProvider(ILlmProvider):
             headers={"Authorization": f"Bearer {api_key}"},
             timeout=60.0,
         )
-        self._embedding_cache: dict[str, list[float]] = {}
+        self._embedding_cache: LRUCache[str, list[float]] = LRUCache(maxsize=1000)
 
     @property
     def model_name(self) -> str:
